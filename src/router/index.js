@@ -1,28 +1,45 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import HomeView from "../views/HomeView.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: HomeView,
+    redirect: "/login",
   },
   {
-    path: "/about",
-    name: "about",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    path: "/login",
+    component: () => import("@/views/login"),
+  },
+  {
+    path: "/home",
+    component: () => import("@/views/home"),
+    redirect: "/welcome",
+    children: [
+      {
+        path: "/welcome",
+        component: () => import("@/views/welcome"),
+      },
+      {
+        path: "/users",
+        component: () => import("@/views/users"),
+      },
+    ],
   },
 ];
 
 const router = new VueRouter({
   routes,
+});
+// 全局守卫
+router.beforeEach((to, from, next) => {
+  // 如果用户访问'/login'直接放行
+  if (to.path === "/login") return next();
+  // 从vuex中获取token值
+  const token = sessionStorage.getItem("token_dianshang");
+  if (!token) return next("/login");
+  next();
 });
 
 export default router;
